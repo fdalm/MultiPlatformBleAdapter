@@ -20,6 +20,7 @@ import com.polidea.multiplatformbleadapter.errors.BleErrorUtils;
 import com.polidea.multiplatformbleadapter.errors.ErrorConverter;
 import com.polidea.multiplatformbleadapter.exceptions.CannotMonitorCharacteristicException;
 import com.polidea.multiplatformbleadapter.utils.Base64Converter;
+import com.polidea.multiplatformbleadapter.utils.UTF8Converter;
 import com.polidea.multiplatformbleadapter.utils.Constants;
 import com.polidea.multiplatformbleadapter.utils.DisposableMap;
 import com.polidea.multiplatformbleadapter.utils.IdGenerator;
@@ -663,7 +664,8 @@ public class BleModule implements BleAdapter {
     @Override
     public void writeCharacteristicForService(int serviceIdentifier,
                                               String characteristicUUID,
-                                              String valueBase64,
+                                              // String valueBase64,
+                                              String valueUtf8,
                                               boolean withResponse,
                                               String transactionId,
                                               OnSuccessCallback<Characteristic> onSuccessCallback,
@@ -676,7 +678,8 @@ public class BleModule implements BleAdapter {
 
         writeCharacteristicWithValue(
                 characteristic,
-                valueBase64,
+                // valueBase64,
+                valueUtf8,
                 withResponse,
                 transactionId,
                 onSuccessCallback,
@@ -685,7 +688,8 @@ public class BleModule implements BleAdapter {
 
     @Override
     public void writeCharacteristic(int characteristicIdentifier,
-                                    String valueBase64,
+                                    // String valueBase64,
+                                    String valueUtf8,
                                     boolean withResponse,
                                     String transactionId,
                                     OnSuccessCallback<Characteristic> onSuccessCallback,
@@ -697,7 +701,8 @@ public class BleModule implements BleAdapter {
 
         writeCharacteristicWithValue(
                 characteristic,
-                valueBase64,
+                // valueBase64,
+                valueUtf8,
                 withResponse,
                 transactionId,
                 onSuccessCallback,
@@ -856,7 +861,8 @@ public class BleModule implements BleAdapter {
                                          final String serviceUUID,
                                          final String characteristicUUID,
                                          final String descriptorUUID,
-                                         final String valueBase64,
+                                         // final String valueBase64,
+                                         final String valueUtf8,
                                          final String transactionId,
                                          OnSuccessCallback<Descriptor> successCallback,
                                          OnErrorCallback errorCallback) {
@@ -864,7 +870,8 @@ public class BleModule implements BleAdapter {
             Descriptor descriptor = getDescriptor(deviceId, serviceUUID, characteristicUUID, descriptorUUID);
             safeWriteDescriptorForDevice(
                     descriptor,
-                    valueBase64,
+                    // valueBase64,
+                    valueUtf8,
                     transactionId,
                     successCallback,
                     errorCallback);
@@ -877,7 +884,8 @@ public class BleModule implements BleAdapter {
     public void writeDescriptorForService(final int serviceIdentifier,
                                           final String characteristicUUID,
                                           final String descriptorUUID,
-                                          final String valueBase64,
+                                          // final String valueBase64,
+                                          final String valueUtf8,
                                           final String transactionId,
                                           OnSuccessCallback<Descriptor> successCallback,
                                           OnErrorCallback errorCallback) {
@@ -885,7 +893,8 @@ public class BleModule implements BleAdapter {
             Descriptor descriptor = getDescriptor(serviceIdentifier, characteristicUUID, descriptorUUID);
             safeWriteDescriptorForDevice(
                     descriptor,
-                    valueBase64,
+                    // valueBase64,
+                    valueUtf8,
                     transactionId,
                     successCallback,
                     errorCallback);
@@ -897,7 +906,8 @@ public class BleModule implements BleAdapter {
     @Override
     public void writeDescriptorForCharacteristic(final int characteristicIdentifier,
                                                  final String descriptorUUID,
-                                                 final String valueBase64,
+                                                 // final String valueBase64,
+                                                 final String valueUtf8,
                                                  final String transactionId,
                                                  OnSuccessCallback<Descriptor> successCallback,
                                                  OnErrorCallback errorCallback) {
@@ -905,7 +915,8 @@ public class BleModule implements BleAdapter {
             Descriptor descriptor = getDescriptor(characteristicIdentifier, descriptorUUID);
             safeWriteDescriptorForDevice(
                     descriptor,
-                    valueBase64,
+                    // valueBase64,
+                    valueUtf8,
                     transactionId,
                     successCallback,
                     errorCallback);
@@ -916,7 +927,8 @@ public class BleModule implements BleAdapter {
 
     @Override
     public void writeDescriptor(final int descriptorIdentifier,
-                                final String valueBase64,
+                                // final String valueBase64,
+                                final String valueUtf8,
                                 final String transactionId,
                                 OnSuccessCallback<Descriptor> successCallback,
                                 OnErrorCallback errorCallback) {
@@ -924,7 +936,8 @@ public class BleModule implements BleAdapter {
             Descriptor descriptor = getDescriptor(descriptorIdentifier);
             safeWriteDescriptorForDevice(
                     descriptor,
-                    valueBase64,
+                    // valueBase64,
+                    valueUtf8,
                     transactionId,
                     successCallback,
                     errorCallback);
@@ -935,7 +948,8 @@ public class BleModule implements BleAdapter {
     }
 
     private void safeWriteDescriptorForDevice(final Descriptor descriptor,
-                                              final String valueBase64,
+                                              // final String valueBase64,
+                                              final String valueUtf8,
                                               final String transactionId,
                                               OnSuccessCallback<Descriptor> successCallback,
                                               OnErrorCallback errorCallback) {
@@ -953,10 +967,12 @@ public class BleModule implements BleAdapter {
 
         final byte[] value;
         try {
-            value = Base64Converter.decode(valueBase64);
+            // value = Base64Converter.decode(valueBase64);
+            value = UTF8Converter.decode(valueUtf8);
         } catch (Throwable e) {
             String uuid = UUIDConverter.fromUUID(nativeDescriptor.getUuid());
-            errorCallback.onError(BleErrorUtils.invalidWriteDataForDescriptor(valueBase64, uuid));
+            // errorCallback.onError(BleErrorUtils.invalidWriteDataForDescriptor(valueBase64, uuid));
+            errorCallback.onError(BleErrorUtils.invalidWriteDataForDescriptor(valueUtf8, uuid));
             return;
         }
 
@@ -1500,18 +1516,23 @@ public class BleModule implements BleAdapter {
     }
 
     private void writeCharacteristicWithValue(final Characteristic characteristic,
-                                              final String valueBase64,
+                                              // final String valueBase64,
+                                              final String valueUtf8,
                                               final Boolean response,
                                               final String transactionId,
                                               OnSuccessCallback<Characteristic> onSuccessCallback,
                                               OnErrorCallback onErrorCallback) {
         final byte[] value;
         try {
-            value = Base64Converter.decode(valueBase64);
+            // value = Base64Converter.decode(valueBase64);
+            value = UTF8Converter.decode(valueUtf8);
         } catch (Throwable error) {
             onErrorCallback.onError(
-                    BleErrorUtils.invalidWriteDataForCharacteristic(valueBase64,
+//                    BleErrorUtils.invalidWriteDataForCharacteristic(valueBase64,
+//                            UUIDConverter.fromUUID(characteristic.getUuid())));
+                    BleErrorUtils.invalidWriteDataForCharacteristic(valueUtf8,
                             UUIDConverter.fromUUID(characteristic.getUuid())));
+
             return;
         }
 
